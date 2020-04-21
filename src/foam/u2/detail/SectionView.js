@@ -16,16 +16,19 @@ foam.CLASS({
     'foam.core.SimpleSlot',
     'foam.layout.Section',
     'foam.u2.detail.SectionedDetailPropertyView',
+    'foam.u2.DisplayMode',
     'foam.u2.layout.Cols',
     'foam.u2.layout.Grid',
     'foam.u2.layout.GUnit',
-    'foam.u2.layout.Rows',
-    'foam.u2.Visibility'
+    'foam.u2.layout.Rows'
   ],
 
   css: `
-    ^ {
-      padding: 12px 0 0 0;
+    .subtitle {
+      color: /*%GREY2%*/ #8e9090';
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 15px;
     }
   `,
 
@@ -59,12 +62,15 @@ foam.CLASS({
 
       self
         .addClass(self.myClass())
-        .add(self.slot(function(section, showTitle, section$title) {
+        .add(self.slot(function(section, showTitle, section$title, section$subTitle) {
           if ( ! section ) return;
           return self.Rows.create()
             .show(section.createIsAvailableFor(self.data$))
             .callIf(showTitle && section$title, function() {
               this.start('h2').add(section$title).end();
+            })
+            .callIf(section$subTitle, function() {
+              this.start().addClass('subtitle').add(section$subTitle).end();
             })
             .start(self.Grid)
               .forEach(section.properties, function(p, index) {
@@ -76,11 +82,14 @@ foam.CLASS({
                     data$: self.data$
                   }, s2)
                 .end();
-                s1.get().show(self.ProxySlot.create({ delegate$: s2.get().visibilitySlot$ }));
+                s1.get().show(self.ProxySlot.create({ delegate$: s2.get().visibilitySlot$ }).map((mode) => mode !== self.DisplayMode.HIDDEN));
               })
             .end()
             .start(self.Cols)
-              .style({ 'justify-content': 'end', 'margin-top': '20px' })
+              .style({
+                'justify-content': 'end',
+                'margin-top': section.actions.length ? '4vh' : 'initial'
+              })
               .forEach(section.actions, function(a) {
                 this.add(a);
               })
